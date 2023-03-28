@@ -1,5 +1,5 @@
 import pygame, sys # import pygame and sys
-from Level_map import *
+from level_map import *
 
 
 from pygame.locals import * # import pygame modules
