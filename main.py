@@ -26,13 +26,15 @@ keys_img = pygame.image.load('images/button_keys.png').convert_alpha()
 back_img = pygame.image.load('images/button_back.png').convert_alpha()
 
 # create button instances
-resume_button = button.Button(304, 125, resume_img, 1)
-options_button = button.Button(297, 250, options_img, 1)
-quit_button = button.Button(336, 375, quit_img, 1)
-video_button = button.Button(226, 75, video_img, 1)
-audio_button = button.Button(225, 200, audio_img, 1)
-keys_button = button.Button(246, 325, keys_img, 1)
-back_button = button.Button(332, 450, back_img, 1)
+#to remember order of function:
+#(self, x, y, image, scale)
+resume_button = button.Button(SCREEN_WIDTH*1/2 - 100,screen_height * 1/4, resume_img, 1.2)
+options_button = button.Button(SCREEN_WIDTH*1/2 - 100,screen_height * 2/4, options_img, 1.2)
+quit_button = button.Button(SCREEN_WIDTH*1/2 - 100,screen_height * 3/4, quit_img, 1.2)
+video_button = button.Button(SCREEN_WIDTH*1/2 - 100,screen_height * 1/4 - 100, video_img, 1.2)
+audio_button = button.Button(SCREEN_WIDTH*1/2 - 100,screen_height * 2/4 - 100, audio_img, 1.2)
+keys_button = button.Button(SCREEN_WIDTH*1/2 - 100,screen_height * 3/4 - 100, keys_img, 1.2)
+back_button = button.Button(SCREEN_WIDTH*1/2 - 100,screen_height * 7/8 - 50, back_img, 1.2)
 
 
 def draw_text(text, font, text_col, x, y):
@@ -46,7 +48,7 @@ def screen_text(text, fontsize, color, x, y):
     text_rect.midtop = (x, y)
     screen.blit(text_surface, text_rect)
 menu_mode = "main"
-
+clicked = False
 
 level = Level([], 'data/level', display)
 
@@ -68,6 +70,8 @@ while True:
             if state == STARTSCREEN:
                 if pygame.key.get_pressed():
                     state = RUNNING
+        if e.type == pygame.MOUSEBUTTONUP:
+            clicked = False
 
     else:
         if state == RUNNING:
@@ -79,24 +83,31 @@ while True:
             screen.fill(MENUCOLOUR)
             if menu_mode == "main":
                 # draw pause screen buttons
-                if resume_button.draw(screen):
+                if resume_button.draw(screen) and clicked == False:
                     state = RUNNING
-                if options_button.draw(screen):
+                    clicked = True
+                if options_button.draw(screen) and clicked == False:
                     menu_mode = "options"
-                if quit_button.draw(screen):
+                    clicked = True
+                if quit_button.draw(screen) and clicked == False:
                     pygame.quit()
                     sys.exit()
+                    clicked = True
                     # check if the options menu is open
             if menu_mode == "options":
                 # draw the different options buttons
-                if video_button.draw(screen):
+                if video_button.draw(screen) and clicked == False:
                     print("Video Settings")
-                if audio_button.draw(screen):
+                    clicked = True
+                if audio_button.draw(screen) and clicked == False:
                     print("Audio Settings")
-                if keys_button.draw(screen):
+                    clicked = True
+                if keys_button.draw(screen) and clicked == False:
                     print("Change Key Bindings")
-                if back_button.draw(screen):
+                    clicked = True
+                if back_button.draw(screen) and clicked == False:
                     menu_mode = "main"
+                    clicked = True
         elif state == STARTSCREEN:
             screen.fill(BGCOLOUR)
             screen_text(TITLE, 48, WHITE, SCREEN_WIDTH / 2, screen_height / 4)
