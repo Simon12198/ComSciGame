@@ -118,8 +118,6 @@ class Player(pygame.sprite.Sprite):
             if self.movement[0] < 0:
                 self.change_action('run')
 
-
-
     def update(self, scroll):
         self.get_input()
         # gravity
