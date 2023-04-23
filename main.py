@@ -66,7 +66,7 @@ pygame.time.set_timer(screenswitch, time)
 
 level = Level([], 'data/level', display)
 
-RUNNING, PAUSE, TITLESCREEN, STARTSCREEN, ENDSCREEN, EASTEREGG = 0, 1, 2, 3, 4, 5
+RUNNING, PAUSE, TITLESCREEN, STARTSCREEN, ENDSCREEN, EASTEREGG, EEPAUSE = 0, 1, 2, 3, 4, 5, 6
 state = TITLESCREEN
 while True:
     for e in pygame.event.get():
@@ -82,6 +82,8 @@ while True:
                 level.button_held()
             if e.key == K_ESCAPE and state == RUNNING:
                 state = PAUSE
+            if e.key == K_ESCAPE and state == EASTEREGG:
+                state = EEPAUSE
             if e.type == KEYUP:
                 if e.key == K_SPACE:
                     level.button_released()
@@ -110,6 +112,41 @@ while True:
                 # draw pause screen buttons
                 if resume_button.draw(screen) and clicked == False:
                     state = RUNNING
+                    clicked = True
+                if options_button.draw(screen) and clicked == False:
+                    menu_mode = "options"
+                    clicked = True
+                if quit_button.draw(screen) and clicked == False:
+                    pygame.quit()
+                    sys.exit()
+                    clicked = True
+                    # check if the options menu is open
+            if menu_mode == "options":
+                # draw the different options buttons
+                if video_button.draw(screen) and clicked == False:
+                    print("Video Settings")
+                    clicked = True
+                if audio_button.draw(screen) and clicked == False:
+                    print("Audio Settings")
+                    clicked = True
+                if keys_button.draw(screen) and clicked == False:
+                    if key_binding == "Normal":
+                        key_binding = "WASD"
+                        clicked = True
+                    elif key_binding == "WASD":
+                        key_binding = "Normal"
+                        clicked = True
+                if back_button.draw(screen) and clicked == False:
+                    menu_mode = "main"
+                    clicked = True
+        elif state == EEPAUSE:
+            screen.fill(PURPLEBG)
+            if easter_egg_button.draw(screen) and clicked == False:
+                state = RUNNING
+            if menu_mode == "main":
+                # draw pause screen buttons
+                if resume_button.draw(screen) and clicked == False:
+                    state = EASTEREGG
                     clicked = True
                 if options_button.draw(screen) and clicked == False:
                     menu_mode = "options"
