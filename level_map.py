@@ -1,10 +1,16 @@
+from os import kill
+import button
 from player import *
 tile_size = 20
 
 SCREEN_WIDTH = 1200
 screen_height = 576
-
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+BGCOLOUR = (0, 128, 255)
+TITLE = "Fatal Echo"
 rescaled_width = 600
+FPS = 60
 rescaled_height = 288
 
 
@@ -24,10 +30,14 @@ class Tiles(pygame.sprite.Sprite):
 
 class Level:
     def __init__(self, game_map, path, surface):
+        self.running = True
         self.game_map = game_map
         self.surface = surface
         self.game_map = self.load_map(path)
         self.render_tiles(self.game_map)
+        self.font_name = pygame.font.match_font('arial')
+        self.key_pressed = False
+
     def load_map(self, level_data):
         global screen_height
         f = open(level_data, 'r')
@@ -106,18 +116,38 @@ class Level:
         player = self.player.sprite
         player.jump_held = False
 
+    def key_press(self):
+        self.key_pressed = True
+
+    def key_release(self):
+        self.key_pressed = False
     def run(self):
         #tiles
         self.scrolling()
         self.tiles.update(self.scroll)
         self.tiles.draw(self.surface)
-
-        #player
+        #player.py
         player = self.player.sprite
 
         self.player.update(self.scroll)
         self.player.draw(self.surface)
         self.collision_movement()
+
+    def wait_for_key(self):
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    waiting = False
+                    self.running = False
+                if event.type == pygame.KEYUP:
+                    waiting = False
+
+
+
+
+
+
 
 
 
