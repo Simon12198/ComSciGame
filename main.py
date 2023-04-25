@@ -13,7 +13,7 @@ screen = pygame.display.set_mode(WINDOW_SIZE,0,32) # initiate screen
 
 display = pygame.Surface((rescaled_width, rescaled_height))
 
-level = Level([], 'data/level', display)
+level = Level([], 'data/levels/level_0/', display)
 
 while True:
     for event in pygame.event.get():

@@ -1,58 +1,98 @@
 from player import *
-tile_size = 20
+from csv_loader import *
+tile_size = 32
 
 SCREEN_WIDTH = 1200
-screen_height = 576
+screen_height = 640
 
 rescaled_width = 600
-rescaled_height = 288
+rescaled_height = 320
 
 
 
 class Tiles(pygame.sprite.Sprite):
-    def __init__(self, loc, size):
+    def __init__(self, size, loc):
         super().__init__()
         self.image = pygame.Surface((size,size))
-        self.image.fill('grey')
         self.rect = self.image.get_rect(topleft = loc)
-
-
-
     def update(self, scroll):
         self.rect.x -= scroll[0]
         self.rect.y -= scroll[1]
+
+class ground_tile(Tiles):
+    def __init__(self, size, loc, img):
+        super().__init__(size, loc)
+        self.image = img
+
+
 
 class Level:
     def __init__(self, game_map, path, surface):
         self.game_map = game_map
         self.surface = surface
         self.game_map = self.load_map(path)
-        self.render_tiles(self.game_map)
-    def load_map(self, level_data):
-        global screen_height
-        f = open(level_data, 'r')
-        self.level_data = f.read()
-        f.close()
-        self.level_data = self.level_data.split('\n')
-        for row in self.level_data:
-            screen_height += 1
-            self.game_map.append(list(row))
-        return self.game_map
-    def render_tiles(self, game_map):
+
         self.tiles = pygame.sprite.Group()
+        self.bg_objects = pygame.sprite.Group()
+        self.coin = pygame.sprite.Group()
+
+
+        self.terrain_layout = import_csv_files(self.game_map['Grass'])
+        self.terrain_sprites = self.create_sprite(self.terrain_layout, 'Grass')
+
+        self.Gold = import_csv_files(self.game_map['Gold'])
+        self.create_sprite(self.Gold, 'Gold')
+
+        self.trees = import_csv_files(self.game_map['Trees'])
+        self.create_sprite(self.trees, 'Trees')
+
+        self.spawn = import_csv_files(self.game_map['Spawn'])
+        self.create_sprite(self.spawn, 'spawn')
+
+    def load_map(self, path):
+        level_data = {}
+        f = open(path + 'level', 'r')
+        self.level = f.read()
+        f.close()
+        self.level = self.level.split('\n')
+        for name in self.level:
+            paths = path.split('/')
+            level_name = paths[2]
+            level_data[name] = path + level_name + '_' + name + '.csv'
+        return(level_data)
+
+    def create_sprite(self, layout, type):
         self.player = pygame.sprite.GroupSingle()
-        y = 0
-        for row in game_map:
-            x = 0
-            for tile in row:
-                if tile == '1':
-                    tile = Tiles((x * tile_size, y * tile_size), tile_size)
-                    self.tiles.add(tile)
-                if tile == 'P':
-                    player = Player((x * tile_size, y * tile_size))
-                    self.player.add(player)
-                x += 1
-            y += 1
+        row_index = 0
+        for row in layout:
+            col_index = 0
+            for col in row:
+                if col != '-1':
+                    if type == 'Grass':
+                        terrain_layout = slicing_tiles('data/graphics/Terrain/Grass/Grass.png')
+                        tile = terrain_layout[int(col)]
+                        sprite = ground_tile(tile_size, [col_index * 32 , row_index * 32], tile)
+                        self.tiles.add(sprite)
+                    if type == 'Gold':
+                        gold = slicing_tiles('data/graphics/Terrain/Coin/gold_coin.png')
+                        tiles = gold[int(col)]
+                        sprite = ground_tile(tile_size, [col_index * 32, row_index * 32], tiles)
+                        self.coin.add(sprite)
+                    if type == 'Trees':
+                        trees = slicing_tiles('data/graphics/Terrain/Tree/Tree_0.png', (64,  64))
+                        tiles = trees[0]
+                        sprite = ground_tile(tile_size, [col_index * 32, row_index * 29], tiles)
+                        self.bg_objects.add(sprite)
+
+
+                    if type == 'spawn':
+                        player = Player([col_index * 32, row_index * 32])
+                        self.player.add(player)
+                col_index += 1
+
+            row_index += 1
+        self.tile_sprites = self.tiles.sprites()
+
     def scrolling(self):
         player = self.player.sprite
         true_scroll = [0, 0]
@@ -76,6 +116,10 @@ class Level:
                 if player.movement[0] < 0:
                     player.rect.left = tile.rect.right
                     self.collision_types['left'] = True
+        for coin in self.coin.sprites():
+            if coin.rect.colliderect(player.rect):
+                self.coin.remove(coin)
+
         player.y = player.rect.y
         player.y += player.movement[1]
         player.rect.y = int(player.y)
@@ -87,6 +131,10 @@ class Level:
                 if player.movement[1] < 0:
                     player.rect.top = tile.rect.bottom
                     self.collision_types['top'] = True
+
+        for coin in self.coin.sprites():
+            if coin.rect.colliderect(player.rect):
+                self.coin.remove(coin)
         if self.collision_types['bottom']:
             player.collide_bottom = True
             player.air_timer = 0
@@ -107,10 +155,18 @@ class Level:
         player.jump_held = False
 
     def run(self):
-        #tiles
+        # tiles
         self.scrolling()
+
         self.tiles.update(self.scroll)
         self.tiles.draw(self.surface)
+
+        self.bg_objects.update(self.scroll)
+        self.bg_objects.draw(self.surface)
+
+        self.coin.update(self.scroll)
+        self.coin.draw(self.surface)
+
 
         #player
         player = self.player.sprite
@@ -118,6 +174,7 @@ class Level:
         self.player.update(self.scroll)
         self.player.draw(self.surface)
         self.collision_movement()
+
 
 
 

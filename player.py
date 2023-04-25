@@ -61,7 +61,7 @@ class Player(pygame.sprite.Sprite):
             self.direction = [False, False]
         if keys[pygame.K_SPACE]:
             if self.air_timer < 6:
-                self.vertical_momentum = -3
+                self.vertical_momentum = -4
 
     def gravity(self):
         self.gravity_multiplier = 0.2
