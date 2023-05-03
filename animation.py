@@ -39,7 +39,7 @@ def load_animations(path):
         for frames in duration[animation_name]:
             animation_ID = animation_name + '_' + str(n)
             animation_path = full_path + '/' + animation_name + '/' + animation_ID + '.png'
-            animation = pygame.image.load(animation_path).convert()
+            animation = pygame.image.load(animation_path).convert_alpha()
             animation.set_colorkey((255, 255, 255))
             animation_database[animation_ID] = animation.copy()
             for frame in range(frames):
