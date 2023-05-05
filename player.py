@@ -39,56 +39,36 @@ class Player(pygame.sprite.Sprite):
         self.jump_held = False
         self.gravity_multiplier = 0.2
         self.n = 0
-        self.key_binding = "Normal"
 
     def get_input(self):
 
         self.movement = [0, 0]
-        keys = pygame.key.get_pressed()
-        if self.key_binding == "WASD":
-            if keys[pygame.K_d]:
-                self.movement[0] += 3
-                self.direction = [True, False]
-                self.flip = False
-                if -0.2 < self.vertical_momentum < 0.2 and self.jump_held:
-                    self.movement[0] += 1
-            if keys[pygame.K_a]:
-                self.movement[0] -= 3
-                self.direction = [False, True]
-                self.flip = True
-                if -0.2 < self.vertical_momentum < 0.2 and self.jump_held:
-                    self.movement[0] -= 1
-            if keys[pygame.K_w]:
-                if self.air_timer < 6:
-                    self.vertical_momentum = -4
-        if self.key_binding == "Normal":
-            if keys[pygame.K_RIGHT]:
-                self.movement[0] += 3
-                self.direction = [True, False]
-                self.flip = False
-                if -0.2 < self.vertical_momentum < 0.2 and self.jump_held:
-                    self.movement[0] += 1
-            elif keys[pygame.K_LEFT]:
-                self.movement[0] -= 3
-                self.direction = [False, True]
-                self.flip = True
-                if -0.2 < self.vertical_momentum < 0.2 and self.jump_held:
-                    self.movement[0] -= 1
-            else:
-                self.direction = [False, False]
-            if keys[pygame.K_SPACE]:
-                if self.air_timer < 6:
-                    self.vertical_momentum = -4
+        self.keys = pygame.key.get_pressed()
+        if self.keys[pygame.K_RIGHT]:
+
+            self.movement[0] += 3
+            self.direction = [True, False]
+            self.flip = False
+            if -0.2 < self.vertical_momentum < 0.2 and self.keys[pygame.K_SPACE]:
+                self.movement[0] += 1
+        elif self.keys[pygame.K_LEFT]:
+            self.movement[0] -= 3
+            self.direction = [False, True]
+            self.flip = True
+            if -0.2 < self.vertical_momentum < 0.2 and self.keys[pygame.K_SPACE]:
+                self.movement[0] -= 1
+        else:
+            self.direction = [False, False]
+        if self.keys[pygame.K_SPACE]:
+            if self.air_timer < 6:
+                self.vertical_momentum = -4
 
     def gravity(self):
         self.gravity_multiplier = 0.2
         if self.vertical_momentum > 0.4:
             self.gravity_multiplier = 0.5
-        elif self.vertical_momentum < 0 and not(self.jump_held):
-            self.vertical_momentum += 0.5
-        elif -0.2 < self.vertical_momentum < 0.2 and self.jump_held:
-            self.gravity_multiplier = 0.05
-            self.velocity = 5
+        elif self.vertical_momentum < 0 and not(self.keys[pygame.K_SPACE]):
+            self.vertical_momentum += 1
         self.movement[1] += self.vertical_momentum
         self.vertical_momentum += self.gravity_multiplier
         if self.vertical_momentum > 3:
@@ -149,3 +129,16 @@ class Player(pygame.sprite.Sprite):
 
         self.implement_anim(True)
         self.status()
+
+
+
+
+
+
+
+
+
+
+
+
+
