@@ -185,4 +185,3 @@ while True:
 
         clock.tick(60)
         continue
-
