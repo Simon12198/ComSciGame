@@ -1,3 +1,4 @@
+from player import Player
 from player import *
 from csv_loader import *
 tile_size = 32
@@ -7,6 +8,8 @@ screen_height = 640
 
 rescaled_width = 600
 rescaled_height = 320
+
+
 
 class Tiles(pygame.sprite.Sprite):
     def __init__(self, size, loc):
@@ -30,9 +33,13 @@ class Level:
         self.surface = surface
         self.game_map = self.load_map(path)
 
+        self.player = pygame.sprite.GroupSingle()
         self.tiles = pygame.sprite.Group()
         self.bg_objects = pygame.sprite.Group()
         self.coin = pygame.sprite.Group()
+        self.Death = pygame.sprite.Group()
+
+
         self.terrain_layout = import_csv_files(self.game_map['Grass'])
         self.terrain_sprites = self.create_sprite(self.terrain_layout, 'Grass')
 
@@ -44,6 +51,9 @@ class Level:
 
         self.spawn = import_csv_files(self.game_map['Spawn'])
         self.create_sprite(self.spawn, 'spawn')
+
+        self.death = import_csv_files(self.game_map['Death'])
+        self.create_sprite(self.death, 'death')
 
     def load_map(self, path):
         level_data = {}
@@ -58,7 +68,7 @@ class Level:
         return(level_data)
 
     def create_sprite(self, layout, type):
-        self.player = pygame.sprite.GroupSingle()
+
         row_index = 0
         for row in layout:
             col_index = 0
@@ -74,16 +84,15 @@ class Level:
                         tiles = gold[int(col)]
                         sprite = ground_tile(tile_size, [col_index * 32, row_index * 32], tiles)
                         self.coin.add(sprite)
-                    if type == 'Trees':
-                        trees = slicing_tiles('data/graphics/Terrain/Tree/Tree_0.png', (64,  64))
-                        tiles = trees[0]
-                        sprite = ground_tile(tile_size, [col_index * 32, row_index * 29], tiles)
-                        self.bg_objects.add(sprite)
-
-
+                    if type == 'death':
+                        death = slicing_tiles('data/graphics/Terrain/Death/Death.png')
+                        tileset = death[int(col)]
+                        sprite = ground_tile(tile_size, [col_index * 32, row_index * 32], tileset)
+                        self.Death.add(sprite)
                     if type == 'spawn':
                         player = Player([col_index * 32, row_index * 32])
                         self.player.add(player)
+
                 col_index += 1
 
             row_index += 1
@@ -116,6 +125,27 @@ class Level:
             if coin.rect.colliderect(player.rect):
                 self.coin.remove(coin)
 
+        for death in self.Death.sprites():
+            if death.rect.colliderect(player.rect):
+                self.player = pygame.sprite.GroupSingle().empty()
+                self.tiles = pygame.sprite.Group().empty()
+                self.bg_objects = pygame.sprite.Group().empty()
+                self.coin = pygame.sprite.Group().empty()
+                self.Death = pygame.sprite.Group().empty()
+
+                self.player = pygame.sprite.GroupSingle()
+                self.tiles = pygame.sprite.Group()
+                self.bg_objects = pygame.sprite.Group()
+                self.coin = pygame.sprite.Group()
+                self.Death = pygame.sprite.Group()
+
+                self.terrain_sprites = self.create_sprite(self.terrain_layout, 'Grass')
+                self.create_sprite(self.Gold, 'Gold')
+                self.create_sprite(self.trees, 'Trees')
+                self.create_sprite(self.spawn, 'spawn')
+                self.create_sprite(self.death, 'death')
+                print('YOU DIED')
+
         player.y = player.rect.y
         player.y += player.movement[1]
         player.rect.y = int(player.y)
@@ -127,6 +157,7 @@ class Level:
                 if player.movement[1] < 0:
                     player.rect.top = tile.rect.bottom
                     self.collision_types['top'] = True
+
 
         for coin in self.coin.sprites():
             if coin.rect.colliderect(player.rect):
@@ -150,12 +181,6 @@ class Level:
         player = self.player.sprite
         player.jump_held = False
 
-    def change_key_bindings(self):
-        if self.key_binding == "Normal" and keys_button.draw(screen):
-            self.key_binding = "WASD"
-        elif self.key_binding == "WASD" and keys_button.draw(screen):
-            self.key_binding = "Normal"
-
     def run(self):
         # tiles
         self.scrolling()
@@ -169,9 +194,11 @@ class Level:
         self.coin.update(self.scroll)
         self.coin.draw(self.surface)
 
+        self.Death.update(self.scroll)
 
         #player
         player = self.player.sprite
+
         self.player.update(self.scroll)
         self.player.draw(self.surface)
         self.collision_movement()
