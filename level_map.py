@@ -31,20 +31,21 @@ class ground_tile(Tiles):
 
 class Level:
     def __init__(self, game_map, path, surface, name, last_level = False):
+        #Used to produce a complete tile map
+        self.path = path
         self.game_map = game_map
         self.surface = surface
 
-        self.name = name
-        self.path = path
-
         self.game_map = self.load_map(self.path)
+
+
         self.dead = False
 
         #used to calcuate final score
         self.final_score = True
         self.last_level = last_level
 
-        #tile groups
+        #set up tile groups
         self.player = pygame.sprite.GroupSingle()
         self.tiles = pygame.sprite.Group()
         self.bg_objects = pygame.sprite.Group()
@@ -56,12 +57,14 @@ class Level:
         self.slopesgroup = pygame.sprite.Group()
         self.topslopesgroup = pygame.sprite.Group()
 
-        #use to calculate score
+        #use to calculate score with name
+        self.name = name
         self.score = 10000
         self.coin_count = 0
+        self.done = False
         self.start_time = time.time()
 
-
+        #Used for tiling system (importing images)
         self.terrain_layout = import_csv_files(self.game_map['Grass'])
         self.terrain_sprites = self.create_sprite(self.terrain_layout, 'Grass')
 
@@ -74,17 +77,14 @@ class Level:
         self.trees = import_csv_files(self.game_map['Trees'])
         self.create_sprite(self.trees, 'Trees')
 
-
-
         self.death = import_csv_files(self.game_map['Death'])
         self.create_sprite(self.death, 'death')
 
         self.slope = import_csv_files(self.game_map['Slopes'])
         self.slopes = self.create_sprite(self.slope, 'Slopes')
 
-
-
     def load_map(self, path):
+        #puts in the csv files (tile maps) in a dictornary with the key of the tile's name
         level_data = {}
         f = open(path + 'level', 'r')
         self.level = f.read()
@@ -97,6 +97,7 @@ class Level:
         return(level_data)
 
     def create_sprite(self, layout, type):
+        #Used to create sprite_groups to prepare for drawing
         row_index = 0
         for row in layout:
             col_index = 0
@@ -148,23 +149,23 @@ class Level:
                         if col == '1':
                             sprite = ground_tile(tile_size, [col_index * 16, row_index * 16], born_set)
                             self.End.add(sprite)
-
-
                 col_index += 1
             row_index += 1
         self.tile_sprites = self.tiles.sprites()
 
     def scrolling(self):
+        #Used for scrolling
         spawn = self.Spawn.sprite
         player = self.player.sprite
         true_scroll = [0, 0]
-        if self.dead == False:
+
+        if self.dead == False: #Prevents error when player is dead
             true_scroll[0] += (player.rect.x-true_scroll[0] - rescaled_width // 2) // 15
             true_scroll[1] += (player.rect.y-true_scroll[1] - rescaled_height // 2) // 15
             self.scroll = true_scroll.copy()
             self.scroll[0] = int(self.scroll[0])
             self.scroll[1] = int(self.scroll[1])
-        else:
+        else: #if player is dead, scroll to invisible spawn tile for respawnimg
             true_scroll[0] += (spawn.rect.x-true_scroll[0])
             true_scroll[1] += (spawn.rect.y-true_scroll[1])
             self.scroll = true_scroll.copy()
@@ -172,6 +173,7 @@ class Level:
             self.scroll[1] = int(self.scroll[1])
 
     def collision_movement(self):
+        #Checks for collisons using built in rect collisions from pygame
         if self.dead == False:
             player = self.player.sprite
             player.x = player.rect.x
@@ -191,11 +193,15 @@ class Level:
                     self.coin_count += 1
                     self.coin.remove(coin)
 
+            for end_tile in self.End.sprites():
+                if end_tile.rect.colliderect(player.rect):
+                    self.end_level()
 
             for death in self.Death.sprites():
                 if death.rect.colliderect(player.rect):
                     self.dead = True
                     self.player.empty()
+
 
 
             player.y = player.rect.y
@@ -248,12 +254,15 @@ class Level:
                     if player.movement[1] < 0:
                         player.rect.top = tile.rect.bottom
                         self.collision_types['top'] = True
-
-
             for coin in self.coin.sprites():
                 if coin.rect.colliderect(player.rect):
                     self.coin_count += 1
                     self.coin.remove(coin)
+
+            for end_tile in self.End.sprites():
+                if end_tile.rect.colliderect(player.rect):
+                    self.end_level()
+
             if self.collision_types['bottom']:
                 player.collide_bottom = True
                 player.air_timer = 0
@@ -286,6 +295,7 @@ class Level:
             score.score_keeping(self.path, self.score, [self.coin_count, self.time_elasped, 0], self.name)
             self.final_score = True
         score.score_keeping(self.path, self.score, [self.coin_count, self.time_elasped, 0])
+        self.done = True
 
     def run(self):
         self.time_elasped = (time.time() - self.start_time)
@@ -296,8 +306,6 @@ class Level:
         if self.dead:
             self.dying()
         # tiles
-
-
 
         self.Tree.update(self.scroll)
         self.Tree.draw(self.surface)
@@ -314,6 +322,7 @@ class Level:
         self.slopesgroup.update(self.scroll)
         self.slopesgroup.draw(self.surface)
 
+        self.End.update(self.scroll)
         self.Death.update(self.scroll)
 
         self.Spawn.update(self.scroll)

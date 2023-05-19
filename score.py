@@ -1,5 +1,5 @@
 def cal_score(score_points, coin_count, time_taken, enemy_kills = 0):
-    score_points += (coin_count + enemy_kills * 2) * 500
+    score_points += (coin_count + enemy_kills * 2) * 50
     score_points -= (time_taken) * 100
     return score_points
 
