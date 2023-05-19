@@ -68,11 +68,12 @@ finished_switch = pygame.USEREVENT + 1
 pygame.time.set_timer(finished_switch, time)
 pygame.time.set_timer(screenswitch, time)
 
-level = Level([], 'data/levels/level_0/', display)
+level = Level([], 'data/levels/level_0/', display, 'Josh')
 
 RUNNING, PAUSE, TITLESCREEN, STARTSCREEN, ENDSCREEN, EASTEREGG, EEPAUSE = 0, 1, 2, 3, 4, 5, 6
 state = TITLESCREEN
 while True:
+    display.fill('red')
     for e in pygame.event.get():
         if e.type == screenswitch:
             state = STARTSCREEN
@@ -83,14 +84,16 @@ while True:
             sys.exit()
         if e.type == KEYDOWN:
             if e.key == K_SPACE:
-                level.button_held()
+                if level.dead == False:
+                    level.button_held()
             if e.key == K_ESCAPE and state == RUNNING:
                 state = PAUSE
             if e.key == K_ESCAPE and state == EASTEREGG:
                 state = EEPAUSE
             if e.type == KEYUP:
                 if e.key == K_SPACE:
-                    level.button_released()
+                    if level.dead == False:
+                        level.button_released()
             if state == STARTSCREEN:
                 if pygame.key.get_pressed():
                     state = RUNNING
@@ -98,13 +101,13 @@ while True:
             clicked = False
 
     else:
+
         if state == RUNNING:
-            display.fill('red')
             level.run()
             screen.blit(pygame.transform.scale(display, WINDOW_SIZE), (0, 0))
             pygame.display.update()  # update the screen
         if state == EASTEREGG:
-            display.fill(LBLUE)
+            display.fill('lightskyblue')
             level.run()
             screen.blit(pygame.transform.scale(display, WINDOW_SIZE), (0, 0))
             pygame.display.update()  # update the screen
@@ -184,4 +187,3 @@ while True:
         pygame.display.flip()
 
         clock.tick(60)
-        continue
