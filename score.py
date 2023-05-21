@@ -58,4 +58,3 @@ def score_keeping(path,score_points, info, name = ''): #info = [coin, time, enem
     f.close()
     return score_points
 
-

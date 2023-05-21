@@ -24,6 +24,7 @@ def slicing_tiles(path, tile_size = (16, 16)):
             surface.set_colorkey((0, 0, 0))
             surface.blit(image, (0, 0), pygame.Rect(x, y, tile_size[0], tile_size[1]))
             tiles.append(surface)
+
     return tiles
 
 
